@@ -81,8 +81,8 @@ class Item implements RequestPart
    */
   public function setName(string $name): self
   {
-    if (mb_strlen($name) > 64) {
-      throw new InvalidArgumentException('Name too big. Max length size = 64');
+    if (mb_strlen($name) > 128) {
+      throw new InvalidArgumentException('Name too big. Max length size = 128');
     }
 
     $this->name = $name;
