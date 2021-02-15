@@ -1,5 +1,5 @@
 {
-  "name": "zabolin/atol-online",
+  "name": "it-quasar/atol-online",
   "version": "4.0.1",
   "description": "Библиотека для работы с АТОЛ Онлайн",
   "type": "library",
@@ -27,6 +27,12 @@
     "psr/log": "^1.0",
     "psr/cache": "^1.0"
   },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/zabolin/atol-online"
+    }
+  ],
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.12",
     "phpunit/phpunit": "^7.2"
