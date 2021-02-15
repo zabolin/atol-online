@@ -43,6 +43,12 @@ class ReportPayload implements ResponsePart
 
   /** @var string */
   private $fnsSite;
+  
+  /** @var string */
+  private $ofdReceiptUrl;
+
+  /** @var array */
+  private $payloadArray;
 
   /**
    * Возвращает номер чека в смене.
@@ -135,6 +141,26 @@ class ReportPayload implements ResponsePart
   {
     return $this->fnsSite;
   }
+  
+  /**
+   * Возвращает URL для просмотра чека на сайте
+   *
+   * @return string
+   */
+  public function getOfdReceiptUrl(): string
+  {
+    return $this->ofdReceiptUrl;
+  }
+
+  /**
+   * Возвращает массив с реквизитами фискализации документа
+   *
+   * @return array
+   */
+  public function getPayloadArray(): array
+  {
+    return $this->payloadArray;
+  }
 
   public static function fromArray(array $array): ReportPayload
   {
@@ -149,6 +175,8 @@ class ReportPayload implements ResponsePart
     $result->fiscalDocumentNumber = $array['fiscal_document_number'];
     $result->fiscalDocumentAttribute = $array['fiscal_document_attribute'];
     $result->fnsSite = $array['fns_site'];
+    $result->ofdReceiptUrl = $array['ofd_receipt_url'];
+    $result->payloadArray = $array;
 
     return $result;
   }
