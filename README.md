@@ -1,4 +1,4 @@
-# Форк библиотеки it-quasar/atol-online
+# Форк библиотеки [it-quasar/atol-online](https://github.com/0x6368656174/atol-online)
 
 Библиотека на PHP для работы с [АТОЛ Онлайн v4](https://online.atol.ru/).
 
