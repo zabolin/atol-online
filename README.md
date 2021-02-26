@@ -198,7 +198,7 @@ $logger = null;
 // Логин, пароль и код группы можно найти в "Настройках интергатора", скачиваемых с 
 // личного кабинета АТОЛ Онлайн в ноде <access>
 $login = 'netletest';
-$passwor = 'v2AfscRjr';
+$password = 'v2AfscRjr';
 $groupCode = 'netletest_8491';
 
 // Создадим клиент
