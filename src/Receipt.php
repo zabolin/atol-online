@@ -151,9 +151,9 @@ class Receipt implements RequestPart
    */
   public function setItems(array $items): self
   {
-    if (0 == count($items) || count($items) > 100) {
-      throw new InvalidArgumentException('Items count must be > 1 and < 100');
-    }
+    //if (0 == count($items) || count($items) > 100) {
+    //  throw new InvalidArgumentException('Items count must be > 1 and < 100');
+    //}
 
     $this->items = $items;
 
@@ -169,9 +169,9 @@ class Receipt implements RequestPart
    */
   public function addItem(Item $item): void
   {
-    if (100 == count($this->items)) {
-      throw new InvalidArgumentException('Items full. Max items count = 100');
-    }
+    //if (100 == count($this->items)) {
+    //  throw new InvalidArgumentException('Items full. Max items count = 100');
+    //}
 
     $this->items[] = $item;
   }
