@@ -37,7 +37,7 @@ class Item implements RequestPart
   /** @var null|string */
   private $paymentMethod = null;
 
-  /** @var null|string */
+  /** @var null|string/ */
   private $paymentObject = null;
 
   /** @var null|Vat */
