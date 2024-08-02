@@ -228,8 +228,8 @@ class ItemV5 implements RequestPart
      */
     public function setMeasure(int $unit): self
     {
-        if ($unit < 1 || $unit > 255) {
-            throw new InvalidArgumentException('Invalid measurement unit. Min = 1, max = 255');
+        if ($unit < 0 || $unit > 255) {
+            throw new InvalidArgumentException('Invalid measurement unit. Min = 0, max = 255');
         }
 
         $this->measure = $unit;
