@@ -155,7 +155,7 @@ class AgentInfo implements RequestPart
       $result['receive_payments_operator'] = $this->receivePaymentsOperator->toArray();
     }
 
-    if (!is_null($this->receivePaymentsOperator)) {
+    if (!is_null($this->moneyTransferOperator)) {
       $result['money_transfer_operator'] = $this->moneyTransferOperator->toArray();
     }
 
