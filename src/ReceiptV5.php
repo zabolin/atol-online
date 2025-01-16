@@ -46,6 +46,8 @@ class ReceiptV5 implements RequestPart
     /** @var null|SupplierInfo */
     private $supplierInfo = null;
 
+    private $isCheckItemsCount = true;
+
     /**
      * Дополнительный реквизит чека.
      * Обычно используется для передачи ФПД чека, содержащего ошибку.
@@ -159,7 +161,7 @@ class ReceiptV5 implements RequestPart
      */
     public function setItems(array $items): self
     {
-        if (0 == count($items) || count($items) > 100) {
+        if ($this->isCheckItemsCount && (0 == count($items) || count($items) > 100)) {
           throw new InvalidArgumentException('Items count must be >= 1 and <= 100');
         }
 
@@ -177,7 +179,7 @@ class ReceiptV5 implements RequestPart
      */
     public function addItem(ItemV5 $item): void
     {
-        if (100 == count($this->items)) {
+        if ($this->isCheckItemsCount && count($this->items) >= 100) {
           throw new InvalidArgumentException('Items full. Max items count = 100');
         }
 
@@ -491,5 +493,12 @@ class ReceiptV5 implements RequestPart
         }
 
         return $result;
+    }
+
+    public function setIsCheckItemsCount(bool $isCheckItemsCount): self
+    {
+        $this->isCheckItemsCount = $isCheckItemsCount;
+
+        return $this;
     }
 }
