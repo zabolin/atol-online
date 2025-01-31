@@ -451,9 +451,9 @@ class ItemV5 implements RequestPart
             throw new SdkException('Measure required');
         }
 
-        if (is_null($this->vat)) {
-            throw new SdkException('Vat required');
-        }
+        //if (is_null($this->vat)) {
+        //    throw new SdkException('Vat required');
+        //}
 
         if (is_null($this->paymentMethod)) {
             throw new SdkException('Payment method required');
