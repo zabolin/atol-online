@@ -477,10 +477,14 @@ class ItemV5 implements RequestPart
             'quantity' => round($this->quantity, 3),
             'measure' => $this->measure,
             'sum' => round($this->sum, 2),
-            'vat' => $this->vat->toArray(),
+            //'vat' => $this->vat->toArray(),
             'payment_method' => $this->paymentMethod,
             'payment_object' => $this->paymentObject,
         ];
+
+        if (!empty($this->vat)) {
+           $result['vat'] = $this->vat->toArray(),
+        }
 
         if (!is_null($this->agentInfo)) {
             $result['agent_info'] = $this->agentInfo->toArray();
