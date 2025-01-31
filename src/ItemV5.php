@@ -483,7 +483,7 @@ class ItemV5 implements RequestPart
         ];
 
         if (!empty($this->vat)) {
-           $result['vat'] = $this->vat->toArray(),
+           $result['vat'] = $this->vat->toArray();
         }
 
         if (!is_null($this->agentInfo)) {
