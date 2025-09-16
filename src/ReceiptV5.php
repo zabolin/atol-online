@@ -28,6 +28,9 @@ class ReceiptV5 implements RequestPart
     /** @var null|Company */
     private $company = null;
 
+    /** @var bool */
+    private $internet = true;
+
     /** @var ItemV5[] */
     private $items = [];
 
@@ -134,6 +137,31 @@ class ReceiptV5 implements RequestPart
     public function setCompany(Company $company): self
     {
         $this->company = $company;
+
+        return $this;
+    }
+
+    /**
+     * Возвращает значение признака применения ККТ при осуществлении
+     * расчета в безналичном порядке в сети "Интернет"
+     *
+     * @return bool
+     */
+    public function getInternet(): bool
+    {
+        return $this->internet;
+    }
+
+    /**
+     * Устанавливает признак применения ККТ при осуществлении расчета
+     * в безналичном порядке в сети "Интернет".
+     *
+     * @param bool $internet
+     * @return $this
+     */
+    public function setInternet(bool $internet): self
+    {
+        $this->internet = $internet;
 
         return $this;
     }
@@ -455,6 +483,7 @@ class ReceiptV5 implements RequestPart
         $result = [
             'client' => $this->client->toArray(),
             'company' => $this->company->toArray(),
+            'internet' => $this->internet,
             'items' => array_map(function (ItemV5 $item) {
                 return $item->toArray();
             }, $this->items),
