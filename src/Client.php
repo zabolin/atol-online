@@ -75,7 +75,7 @@ class Client implements RequestPart
    * символа «+» (номер «+371 2 1234567» необходимо передать как «+37121234567»). Если номер телефона относится к России
    * (префикс «+7»), то значение можно передать без префикса (номер «+7 925 1234567» можно передать как «9251234567»).
    *
-   * Максимальная длина строки – 64 символа.
+   * Максимальная длина строки – 19 символов.
    *
    * В запросе обязательно должно быть заполнено хотя бы одно из полей: email или phone.
    *
@@ -85,8 +85,8 @@ class Client implements RequestPart
    */
   public function setPhone(?string $phone): self
   {
-    if (mb_strlen($phone) > 64) {
-      throw new InvalidArgumentException('Phone too big. Max length size = 64');
+    if (mb_strlen($phone) > 19) {
+      throw new InvalidArgumentException('Phone too big. Max length size = 19');
     }
 
     if (!preg_match('/\+?\d+/', $phone)) {

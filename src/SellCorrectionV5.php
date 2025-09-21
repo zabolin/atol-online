@@ -19,16 +19,16 @@ use ItQuasar\AtolOnline\Exception\SdkException;
  */
 class SellCorrectionV5 implements Request
 {
-  /** @var string */
+  /** @var string $externalId */
   private $externalId = null;
 
-  /** @var Correction */
+  /** @var CorrectionV5 $correction */
   private $correction = null;
 
-  /** @var Service */
+  /** @var Service $service */
   private $service = null;
 
-  /** @var DateTime */
+  /** @var DateTime $timestamp */
   private $timestamp = null;
 
   /**
@@ -70,9 +70,9 @@ class SellCorrectionV5 implements Request
   /**
    * Возвращает коррекцию.
    *
-   * @return Correction
+   * @return CorrectionV5
    */
-  public function getCorrection(): Correction
+  public function getCorrection(): CorrectionV5
   {
     return $this->correction;
   }
@@ -80,11 +80,11 @@ class SellCorrectionV5 implements Request
   /**
    * Устанавливает коррекцию.
    *
-   * @param Correction $correction
+   * @param CorrectionV5 $correction
    *
    * @return $this
    */
-  public function setCorrection(Correction $correction): self
+  public function setCorrection(CorrectionV5 $correction): self
   {
     $this->correction = $correction;
 

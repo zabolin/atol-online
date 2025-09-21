@@ -28,11 +28,11 @@ class ItemV5 implements RequestPart
     /** @var float */
     private $quantity = null;
 
-    /** @var float */
-    private $sum = null;
-
     /** @var null|int */
     private $measure = null;
+
+    /** @var float */
+    private $sum = null;
 
     /** @var null|string */
     private $paymentMethod = null;
@@ -43,14 +43,14 @@ class ItemV5 implements RequestPart
     /** @var null|Vat */
     private $vat = null;
 
+    /** @var null|string */
+    private $userData = null;
+
     /** @var null|AgentInfo */
     private $agentInfo = null;
 
     /** @var null|SupplierInfo */
     private $supplierInfo = null;
-
-    /** @var null|string */
-    private $userData = null;
 
     /**
      * Создает позицию чека.
@@ -111,8 +111,8 @@ class ItemV5 implements RequestPart
      */
     public function setPrice(float $price): self
     {
-        if ($price > 99999999) {
-            throw new InvalidArgumentException('Price too big. Max = 99999999');
+        if ($price > 42_949_672.95) {
+            throw new InvalidArgumentException('Price too big. Max = 42_949_672.95');
         }
 
         $this->price = $price;
@@ -132,8 +132,8 @@ class ItemV5 implements RequestPart
 
     /**
      * Устанавливает количество/вес:
-     * - целая часть не более 8 знаков;
-     * - дробная часть не более 3 знаков.
+     * - целая часть не более 5 знаков;
+     * - дробная часть не более 6 знаков.
      *
      * @param float $quantity
      *
@@ -141,45 +141,11 @@ class ItemV5 implements RequestPart
      */
     public function setQuantity(float $quantity): self
     {
-        if ($quantity > 99999999) {
-            throw new InvalidArgumentException('Quantity too big. Max = 99999999');
+        if ($quantity > 99999.999999) {
+            throw new InvalidArgumentException('Quantity too big. Max = 99999.999999');
         }
 
         $this->quantity = $quantity;
-
-        return $this;
-    }
-
-    /**
-     * Возвращает сумму позиции в рублях.
-     *
-     * @return float
-     */
-    public function getSum(): float
-    {
-        return $this->sum;
-    }
-
-    /**
-     * Устанавливает сумму позиции в рублях:
-     * - целая часть не более 8 знаков;
-     * - дробная часть не более 2 знаков.
-     *
-     * Если значение sum меньше/больше значения (price*quantity), то разница является скидкой/надбавкой на позицию
-     * соответственно. В этих случаях происходит перерасчёт поля price для равномерного распределения
-     * скидки/надбавки по позициям.
-     *
-     * @param float $sum
-     *
-     * @return $this
-     */
-    public function setSum(float $sum): self
-    {
-        if ($sum > 99999999) {
-            throw new InvalidArgumentException('Sum too big. Max = 99999999');
-        }
-
-        $this->sum = $sum;
 
         return $this;
     }
@@ -211,6 +177,7 @@ class ItemV5 implements RequestPart
      * @see Measure::METER – метр
      * @see Measure::SQUARE_CENTIMETER – квадратный сантиметр
      * @see Measure::SQUARE_DECIMETER – квадратный дециметр
+     * @see Measure::SQUARE_METER – квадратный метр
      * @see Measure::MILLILITER – миллилитр
      * @see Measure::LITER – литр
      * @see Measure::CUBIC_METER – кубический метр
@@ -233,6 +200,40 @@ class ItemV5 implements RequestPart
         }
 
         $this->measure = $unit;
+
+        return $this;
+    }
+
+    /**
+     * Возвращает сумму позиции в рублях.
+     *
+     * @return float
+     */
+    public function getSum(): float
+    {
+        return $this->sum;
+    }
+
+    /**
+     * Устанавливает сумму позиции в рублях:
+     * - целая часть не более 8 знаков;
+     * - дробная часть не более 2 знаков.
+     *
+     * Если значение sum меньше/больше значения (price*quantity), то разница является скидкой/надбавкой на позицию
+     * соответственно. В этих случаях происходит перерасчёт поля price для равномерного распределения
+     * скидки/надбавки по позициям.
+     *
+     * @param float $sum
+     *
+     * @return $this
+     */
+    public function setSum(float $sum): self
+    {
+        if ($sum > 42_949_672.95) {
+            throw new InvalidArgumentException('Sum too big. Max = 42_949_672.95');
+        }
+
+        $this->sum = $sum;
 
         return $this;
     }
@@ -262,15 +263,16 @@ class ItemV5 implements RequestPart
      * - @see PaymentMethod::CREDIT – передача в кредит. Передача предмета расчета без его оплаты в момент его передачи с
      *   последующей оплатой в кредит.
      * - @see PaymentMethod::CREDIT_PAYMENT – оплата кредита. Оплата предмета расчета после его передачи с оплатой в
-     *   кредит (оплата кредита). предмета расчета
+     *   кредит (оплата кредита) предмета расчета
      *
      * @see PaymentMethod::FULL_PREPAYMENT – предоплата 100%. Полная предварительная оплата до момента передачи предмета расчета.
-     * - @see PaymentMethod::PREPAYMENT – предоплата. Частичная предварительная оплата до момента передачи предмета расчета.
+     * @see PaymentMethod::PREPAYMENT – предоплата. Частичная предварительная оплата до момента передачи предмета расчета.
      */
-    public function setPaymentMethod(string $method): self {
-    $this->paymentMethod = $method;
+    public function setPaymentMethod(string $method): self
+    {
+        $this->paymentMethod = $method;
 
-    return $this;
+        return $this;
     }
 
     /**
@@ -354,6 +356,34 @@ class ItemV5 implements RequestPart
     }
 
     /**
+     * Возвращает дополнительный реквизит предмета расчета.
+     *
+     * @return string|null
+     */
+    public function getUserData(): ?string
+    {
+        return $this->userData;
+    }
+
+    /**
+     * Устанавливает дополнительный реквизит предмета расчета.
+     *
+     * @param string|null $userData
+     *
+     * @return Item
+     */
+    public function setUserData(?string $userData): self
+    {
+        if (mb_strlen($userData) > 64) {
+            throw new InvalidArgumentException('User data too big. Max length size = 64');
+        }
+
+        $this->userData = $userData;
+
+        return $this;
+    }
+
+    /**
      * Возвращает атрибуты агента.
      *
      * @return AgentInfo|null
@@ -397,34 +427,6 @@ class ItemV5 implements RequestPart
     public function setSupplierInfo(?SupplierInfo $supplierInfo): self
     {
         $this->supplierInfo = $supplierInfo;
-
-        return $this;
-    }
-
-    /**
-     * Возвращает дополнительный реквизит предмета расчета.
-     *
-     * @return string|null
-     */
-    public function getUserData(): ?string
-    {
-        return $this->userData;
-    }
-
-    /**
-     * Устанавливает дополнительный реквизит предмета расчета.
-     *
-     * @param string|null $userData
-     *
-     * @return Item
-     */
-    public function setUserData(?string $userData): self
-    {
-        if (mb_strlen($userData) > 64) {
-            throw new InvalidArgumentException('User data too big. Max length size = 64');
-        }
-
-        $this->userData = $userData;
 
         return $this;
     }

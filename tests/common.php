@@ -130,7 +130,6 @@ function createCorrectionRequest(&$request) {
   $correctionInfo->setBaseDate($baseDate);
 
   $correctionInfo->setBaseNumber('1175');
-  $correctionInfo->setBaseName('Акт технического заключения');
 
   $payment = new Payment();
   $correction->addPayment($payment);

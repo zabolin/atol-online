@@ -11,94 +11,72 @@ declare(strict_types=1);
 namespace ItQuasar\AtolOnline;
 
 use InvalidArgumentException;
-use function is_null;
 use ItQuasar\AtolOnline\Exception\SdkException;
 use function array_map;
 use function count;
-use function round;
 
 /**
- * Чек.
+ * Коррекция.
  */
-class ReceiptV5 implements RequestPart
+class CorrectionV5 implements RequestPart
 {
-    /** @var null|Client */
+    /****************************
+     * Атрибуты чека коррекции *
+     ****************************/
+
+    /** @var null|Client $client */
     private $client = null;
 
-    /** @var null|Company */
+    /** @var null|Company $company */
     private $company = null;
 
-    /** @var bool */
-    private $internet = true;
+    /** @var null|CorrectionInfo $correctionInfo */
+    private $correctionInfo = null;
 
-    /** @var ItemV5[] */
+    /** @var ItemV5[] $items */
     private $items = [];
 
-    /** @var Payment[] */
+    /** @var Payment[] $payments */
     private $payments = [];
 
-    /** @var float */
-    private $total = null;
-
-    /** @var Vat[] */
+    /** @var Vat[] $vats */
     private $vats = [];
 
-    /** @var null|AgentInfo */
-    private $agentInfo = null;
+    /** @var bool $internet */
+    private $internet = true;
 
-    /** @var null|SupplierInfo */
-    private $supplierInfo = null;
+    /** @var null|string $cashier */
+    private $cashier = null;
 
-    private $isCheckItemsCount = true;
+    /** @var null|string $cashier */
+    private $cashierInn = null;
 
     /**
      * Дополнительный реквизит чека.
      * Обычно используется для передачи ФПД чека, содержащего ошибку.
      *
-     * @var null|string
+     * @var null|string $additionalCheckProps
      */
     private $additionalCheckProps = null;
 
-    /** @var null|string */
-    private $cashier = null;
+    /** @var float $total*/
+    private $total = null;
 
-    /** @var null|AdditionalUserProps */
+    /** @var null|AdditionalUserProps $additionalUserProps */
     private $additionalUserProps = null;
 
-    /**
-     * Возвращает итоговую сумму чека в рублях.
-     *
-     * @return float
-     */
-    public function getTotal(): float
-    {
-        return $this->total;
-    }
+    /** @var bool $isCheckItemsCount */
+    private $isCheckItemsCount = true;
 
-    /**
-     * Устанавливает итоговую сумму чека в рублях:
-     * - целая часть не более 8 знаков;
-     * - дробная часть не более 2 знаков.
-     *
-     * @param float $total
-     *
-     * @return $this
-     */
-    public function setTotal(float $total): self
-    {
-        if ($total > 99999999) {
-            throw new InvalidArgumentException('Total too big. Max = 99999999');
-        }
 
-        $this->total = $total;
-
-        return $this;
-    }
+    /**********************************
+     * Методы для работы с атрибутами *
+     **********************************/
 
     /**
      * Возвращает атрибуты клиента.
      *
-     * @return Client
+     * @return Client|null
      */
     public function getClient(): Client
     {
@@ -144,26 +122,25 @@ class ReceiptV5 implements RequestPart
     }
 
     /**
-     * Возвращает значение признака применения ККТ при осуществлении
-     * расчета в безналичном порядке в сети "Интернет"
+     * Возвращает коррекцию.
      *
-     * @return bool
+     * @return CorrectionInfo
      */
-    public function getInternet(): bool
+    public function getCorrectionInfo(): CorrectionInfo
     {
-        return $this->internet;
+        return $this->correctionInfo;
     }
 
     /**
-     * Устанавливает признак применения ККТ при осуществлении расчета
-     * в безналичном порядке в сети "Интернет".
+     * Устанавливает атрибуты ин.
      *
-     * @param bool $internet
+     * @param CorrectionInfo $correctionInfo
+     *
      * @return $this
      */
-    public function setInternet(bool $internet): self
+    public function setCorrectionInfo(CorrectionInfo $correctionInfo): self
     {
-        $this->internet = $internet;
+        $this->correctionInfo = $correctionInfo;
 
         return $this;
     }
@@ -189,8 +166,9 @@ class ReceiptV5 implements RequestPart
      */
     public function setItems(array $items): self
     {
-        if ($this->isCheckItemsCount && (0 == count($items) || count($items) > 100)) {
-          throw new InvalidArgumentException('Items count must be >= 1 and <= 100');
+        $count = count($items);
+        if ($this->isCheckItemsCount && (0 == $count || $count > 100)) {
+            throw new InvalidArgumentException('Items count must be >= 1 and <= 100');
         }
 
         $this->items = $items;
@@ -208,7 +186,7 @@ class ReceiptV5 implements RequestPart
     public function addItem(ItemV5 $item): void
     {
         if ($this->isCheckItemsCount && count($this->items) >= 100) {
-          throw new InvalidArgumentException('Items full. Max items count = 100');
+            throw new InvalidArgumentException('Items full. Max items count = 100');
         }
 
         $this->items[] = $item;
@@ -235,8 +213,8 @@ class ReceiptV5 implements RequestPart
      */
     public function setPayments(array $payments): self
     {
-        if (0 === count($payments) || count($payments) > 10) {
-            throw new InvalidArgumentException('Payments count must be >= 1 and <= 10');
+        if (0 == count($payments) || count($payments) > 10) {
+            throw new InvalidArgumentException('Payments count must be > 1 and < 10');
         }
 
         $this->payments = $payments;
@@ -250,22 +228,43 @@ class ReceiptV5 implements RequestPart
      * Ограничение по количеству от 1 до 10.
      *
      * @param Payment $payment
-     *
-     * @return $this
      */
-    public function addPayment(Payment $payment): self
+    public function addPayment(Payment $payment): void
     {
-        if (10 === count($this->payments)) {
+        if (10 == count($this->payments)) {
             throw new InvalidArgumentException('Payments full. Max payments count = 10');
         }
 
         $this->payments[] = $payment;
+    }
+
+    /**
+     * Возвращает значение признака применения ККТ при осуществлении
+     * расчета в безналичном порядке в сети "Интернет"
+     *
+     * @return bool
+     */
+    public function getInternet(): bool
+    {
+        return $this->internet;
+    }
+
+    /**
+     * Устанавливает признак применения ККТ при осуществлении расчета
+     * в безналичном порядке в сети "Интернет".
+     *
+     * @param bool $internet
+     * @return $this
+     */
+    public function setInternet(bool $internet): self
+    {
+        $this->internet = $internet;
 
         return $this;
     }
 
     /**
-     * Возвращает атрибуты налогов на чек.
+     * Возвращает атрибуты налогов на чек коррекции.
      *
      * @return Vat[]
      */
@@ -275,7 +274,7 @@ class ReceiptV5 implements RequestPart
     }
 
     /**
-     * Устанавлиает атрибуты налога на чек.
+     * Устанавлиает атрибуты налога на чек коррекции.
      *
      * Ограничение по количеству от 1 до 6.
      *
@@ -298,7 +297,7 @@ class ReceiptV5 implements RequestPart
     }
 
     /**
-     * Добавляет атрибут налога на чек.
+     * Добавляет атрибут налога на чек коррекции.
      *
      * Ограничение по количеству от 1 до 6.
      *
@@ -312,88 +311,10 @@ class ReceiptV5 implements RequestPart
     public function addVat(Vat $vat): self
     {
         if (count($this->vats) === 6) {
-            throw new InvalidArgumentException('Vats full. Max payments count = 6');
+            throw new InvalidArgumentException('Vats full. Max vats count = 6');
         }
 
         $this->vats[] = $vat;
-
-        return $this;
-    }
-
-    /**
-     * Возвращает атрибуты агента.
-     *
-     * @return AgentInfo|null
-     */
-    public function getAgentInfo(): ?AgentInfo
-    {
-        return $this->agentInfo;
-    }
-
-    /**
-     * Устанавливает атрибуты агента.
-     *
-     * @param AgentInfo|null $agentInfo
-     *
-     * @return $this
-     */
-    public function setAgentInfo(?AgentInfo $agentInfo): self
-    {
-        $this->agentInfo = $agentInfo;
-
-        return $this;
-    }
-
-    /**
-     * Возвращает атрибуты поставщика.
-     *
-     * @return SupplierInfo|null
-     */
-    public function getSupplierInfo(): ?SupplierInfo
-    {
-        return $this->supplierInfo;
-    }
-
-    /**
-     * Устанавливает атрибуты поставщика.
-     *
-     * @param SupplierInfo|null $supplierInfo
-     *
-     * @return $this
-     */
-    public function setSupplierInfo(?SupplierInfo $supplierInfo): self
-    {
-        $this->supplierInfo = $supplierInfo;
-
-        return $this;
-    }
-
-    /**
-     * Возвращает дополнительный реквизит чека.
-     *
-     * @return string|null
-     */
-    public function getAdditionalCheckProps(): ?string
-    {
-        return $this->additionalCheckProps;
-    }
-
-    /**
-     * Устанавливает дополнительный реквизит чека.
-     *
-     * Максимальная длина строки – 16 символов.
-     *
-     * @param string|null $additionalCheckProps
-     *
-     * @return $this
-     */
-    public function setAdditionalCheckProps(?string $additionalCheckProps): self
-    {
-        if (mb_strlen($additionalCheckProps) > 16) {
-            throw new InvalidArgumentException('AdditionalCheckProps too big. Max length size = 16');
-        }
-
-        $this->additionalCheckProps = $additionalCheckProps;
 
         return $this;
     }
@@ -429,6 +350,96 @@ class ReceiptV5 implements RequestPart
     }
 
     /**
+     * Возвращает ИНН кассира.
+     *
+     * @return string|null
+     */
+    public function getCashierInn(): ?string
+    {
+        return $this->cashier;
+    }
+
+    /**
+     * Устанавливает ИНН кассира.
+     *
+     * Длина строки ровно 12 символов.
+     *
+     * @param string|null $cashier
+     *
+     * @return $this
+     */
+    public function setCashierInn(?string $cashier): self
+    {
+        if (mb_strlen($cashier) != 12) {
+            throw new InvalidArgumentException('CashierInn must be 12 characters');
+        }
+
+        $this->cashier = $cashier;
+
+        return $this;
+    }
+
+    /**
+     * Возвращает дополнительный реквизит чека.
+     *
+     * @return string|null
+     */
+    public function getAdditionalCheckProps(): ?string
+    {
+        return $this->additionalCheckProps;
+    }
+
+    /**
+     * Устанавливает дополнительный реквизит чека.
+     *
+     * Максимальная длина строки – 16 символов.
+     *
+     * @param string|null $additionalCheckProps
+     *
+     * @return $this
+     */
+    public function setAdditionalCheckProps(?string $additionalCheckProps): self
+    {
+        if (mb_strlen($additionalCheckProps) > 16) {
+            throw new InvalidArgumentException('AdditionalCheckProps too big. Max length size = 16');
+        }
+
+        $this->additionalCheckProps = $additionalCheckProps;
+
+        return $this;
+    }
+
+    /**
+     * Возвращает итоговую сумму чека в рублях.
+     *
+     * @return float
+     */
+    public function getTotal(): float
+    {
+        return $this->total;
+    }
+
+    /**
+     * Устанавливает итоговую сумму чека в рублях:
+     * - целая часть не более 8 знаков;
+     * - дробная часть не более 2 знаков.
+     *
+     * @param float $total
+     *
+     * @return $this
+     */
+    public function setTotal(float $total): self
+    {
+        if ($total > 99_999_999) {
+            throw new InvalidArgumentException('Total too big. Max = 99_999_999');
+        }
+
+        $this->total = $total;
+
+        return $this;
+    }
+
+    /**
      * Возвращает дополнительный реквизит пользователя.
      *
      * @return AdditionalUserProps|null
@@ -454,7 +465,7 @@ class ReceiptV5 implements RequestPart
 
     public function toArray(): array
     {
-        if (is_null($this->client)) {
+        if ($this->internet && is_null($this->client)) {
             throw new SdkException('Client required');
         }
 
@@ -462,59 +473,52 @@ class ReceiptV5 implements RequestPart
             throw new SdkException('Company required');
         }
 
-        if (is_null($this->total)) {
-            throw new SdkException('Total required');
+        if (is_null($this->correctionInfo)) {
+            throw new SdkException('Correction info required');
         }
 
         if (count($this->items) == 0) {
             throw new SdkException('More then one item required');
         }
 
-        if (count($this->payments) == 0) {
+        if (0 == count($this->payments)) {
             throw new SdkException('More then one payment required');
         }
 
-        if (!is_null($this->agentInfo) && is_null($this->supplierInfo)) {
-            throw new SdkException('Supplier info required if agent info sets.');
-        }
-
-        if (!is_null($this->supplierInfo) && is_null($this->agentInfo)) {
-            throw new SdkException('Agent info required if supplier info sets.');
+        if (0 == count($this->vats)) {
+            throw new SdkException('More then one vat required');
         }
 
         $result = [
-            'client' => $this->client->toArray(),
             'company' => $this->company->toArray(),
-            'internet' => $this->internet,
+            'correction_info' => $this->correctionInfo->toArray(),
             'items' => array_map(function (ItemV5 $item) {
                 return $item->toArray();
             }, $this->items),
             'payments' => array_map(function (Payment $payment) {
                 return $payment->toArray();
             }, $this->payments),
+            'vats' => array_map(function (Vat $vat) {
+                return $vat->toArray();
+            }, $this->vats),
+            'internet' => $this->internet,
             'total' => round($this->total, 2),
         ];
 
-        if (count($this->vats) > 0) {
-            $result['vats'] = array_map(function (Vat $vat) {
-                return $vat->toArray();
-            }, $this->vats);
-        }
-
-        if (!is_null($this->agentInfo)) {
-            $result['agent_info'] = $this->agentInfo->toArray();
-        }
-
-        if (!is_null($this->supplierInfo)) {
-            $result['supplier_info'] = $this->supplierInfo->toArray();
-        }
-
-        if (!is_null($this->additionalCheckProps)) {
-            $result['additional_check_props'] = $this->additionalCheckProps;
+        if (!is_null($this->client)) {
+            $result['client'] = $this->client->toArray();
         }
 
         if (!is_null($this->cashier)) {
             $result['cashier'] = $this->cashier;
+        }
+
+        if (!is_null($this->cashierInn)) {
+            $result['cashier_inn'] = $this->cashierInn;
+        }
+
+        if (!is_null($this->additionalCheckProps)) {
+            $result['additional_check_props'] = $this->additionalCheckProps;
         }
 
         if (!is_null($this->additionalUserProps)) {
@@ -522,12 +526,5 @@ class ReceiptV5 implements RequestPart
         }
 
         return $result;
-    }
-
-    public function setIsCheckItemsCount(bool $isCheckItemsCount): self
-    {
-        $this->isCheckItemsCount = $isCheckItemsCount;
-
-        return $this;
     }
 }

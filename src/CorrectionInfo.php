@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace ItQuasar\AtolOnline;
 
 use DateTime;
+use InvalidArgumentException;
 use ItQuasar\AtolOnline\Exception\SdkException;
 
 /**
@@ -18,147 +19,134 @@ use ItQuasar\AtolOnline\Exception\SdkException;
  */
 class CorrectionInfo implements RequestPart
 {
-  /** @var string Самостоятельно */
-  const TYPE_SELF = 'self';
+    /** @const string Самостоятельно */
+    const TYPE_SELF = 'self';
 
-  /** @var string По предписанию */
-  const TYPE_INSTRUCTION = 'instruction';
+    /** @const string По предписанию */
+    const TYPE_INSTRUCTION = 'instruction';
 
-  /**
-   * Возвращает тип коррекции.
-   *
-   * @return string
-   */
-  public function getType(): string
-  {
-    return $this->type;
-  }
-
-  /**
-   * Устанавливает тип коррекии.
-   *
-   * Возможные значения:
-   * @see CorrectionInfo::TYPE_SELF – самостоятельно;
-   * @see CorrectionInfo::TYPE_INSTRUCTION - по предписанию.
-   *
-   * @param string $type
-   *
-   * @return $this
-   */
-  public function setType(string $type): self
-  {
-    $this->type = $type;
-
-    return $this;
-  }
-
-  /**
-   * Возвращает дату документа основания для коррекции
-   *
-   * @return DateTime
-   */
-  public function getBaseDate(): DateTime
-  {
-    return $this->baseDate;
-  }
-
-  /**
-   * Устанавлиает дату документа основания для коррекции
-   *
-   * @param DateTime $baseDate
-   *
-   * @return $this
-   */
-  public function setBaseDate(DateTime $baseDate): self
-  {
-    $this->baseDate = $baseDate;
-
-    return $this;
-  }
-
-  /**
-   * Возвращает номер документа основания для коррекции.
-   *
-   * @return string
-   */
-  public function getBaseNumber(): string
-  {
-    return $this->baseNumber;
-  }
-
-  /**
-   * Устанавливет номер документа основания для коррекции.
-   *
-   * @param string $baseNumber
-   *
-   * @return $this
-   */
-  public function setBaseNumber(string $baseNumber): self
-  {
-    $this->baseNumber = $baseNumber;
-
-    return $this;
-  }
-
-  /**
-   * Возвращает описание коррекции.
-   *
-   * @return string
-   */
-  public function getBaseName(): string
-  {
-    return $this->baseName;
-  }
-
-  /**
-   * Устанавлиает описание коррекции.
-   *
-   * @param string $baseName
-   *
-   * @return $this
-   */
-  public function setBaseName(string $baseName): self
-  {
-    $this->baseName = $baseName;
-
-    return $this;
-  }
-
-  /** @var string|null */
-  private $type = null;
-
-  /** @var null|DateTime */
-  private $baseDate = null;
-
-  /** @var null|string */
-  private $baseNumber = null;
-
-  /** @var null|string */
-  private $baseName = null;
-
-  public function toArray(): array
-  {
-    if (is_null($this->type)) {
-      throw new SdkException('Type required');
-    }
-
-    if (is_null($this->baseDate)) {
-      throw new SdkException('Base date required');
-    }
-
-    if (is_null($this->baseNumber)) {
-      throw new SdkException('Base number required');
-    }
-
-    if (is_null($this->baseName)) {
-      throw new SdkException('Base name required');
-    }
-
-    return [
-      'type' => $this->type,
-      'base_date' => $this->baseDate->format('d.m.Y'),
-      'base_number' => $this->baseNumber,
-      'base_name' => $this->baseName,
+    /** @var array $typeList */
+    private $typeList = [
+        self::TYPE_SELF,
+        self::TYPE_INSTRUCTION
     ];
-  }
+
+    /** @var string|null $type */
+    private $type = null;
+
+    /** @var null|DateTime $baseDate */
+    private $baseDate = null;
+
+    /** @var null|string */
+    private $baseNumber = null;
+
+    /**
+     * Возвращает тип коррекции.
+     *
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * Устанавливает тип коррекии.
+     *
+     * Возможные значения:
+     * @param string $type
+     *
+     * @return $this
+     * @see CorrectionInfo::TYPE_SELF – самостоятельно;
+     * @see CorrectionInfo::TYPE_INSTRUCTION - по предписанию.
+     *
+     */
+    public function setType(string $type): self
+    {
+        if (!in_array($type, $this->typeList)) {
+            throw new InvalidArgumentException('Type must be one of: ' . implode(', ', $this->typeList));
+        }
+
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * Возвращает дату документа основания для коррекции
+     *
+     * @return DateTime
+     */
+    public function getBaseDate(): DateTime
+    {
+        return $this->baseDate;
+    }
+
+    /**
+     * Устанавлиает дату документа основания для коррекции
+     *
+     * @param DateTime $baseDate
+     *
+     * @return $this
+     */
+    public function setBaseDate(DateTime $baseDate): self
+    {
+        $this->baseDate = $baseDate;
+
+        return $this;
+    }
+
+    /**
+     * Возвращает номер документа основания для коррекции.
+     *
+     * @return string
+     */
+    public function getBaseNumber(): string
+    {
+        return $this->baseNumber;
+    }
+
+    /**
+     * Устанавливет номер документа основания для коррекции.
+     *
+     * @param string $baseNumber
+     *
+     * @return $this
+     */
+    public function setBaseNumber(string $baseNumber): self
+    {
+        if (mb_strlen($baseNumber) > 32) {
+            throw new InvalidArgumentException('BaseNumber too big. Max length size = 32');
+        }
+
+        $this->baseNumber = $baseNumber;
+
+        return $this;
+    }
+
+    public function toArray(): array
+    {
+        if (is_null($this->type)) {
+            throw new SdkException('Type required');
+        }
+
+        if (is_null($this->baseDate)) {
+            throw new SdkException('Base date required');
+        }
+
+        if ($this->type == self::TYPE_INSTRUCTION && is_null($this->baseNumber)) {
+            throw new SdkException('Base number required');
+        }
+
+        $result = [
+            'type' => $this->type,
+            'base_date' => $this->baseDate->format('d.m.Y'),
+        ];
+
+        if ($this->type == self::TYPE_INSTRUCTION) {
+            $result['base_number'] = $this->baseNumber;
+        }
+
+        return $result;
+    }
 }
