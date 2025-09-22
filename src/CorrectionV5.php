@@ -59,7 +59,7 @@ class CorrectionV5 implements RequestPart
      */
     private $additionalCheckProps = null;
 
-    /** @var float $total*/
+    /** @var float $total */
     private $total = null;
 
     /** @var null|AdditionalUserProps $additionalUserProps */
@@ -485,10 +485,6 @@ class CorrectionV5 implements RequestPart
             throw new SdkException('More then one payment required');
         }
 
-        if (0 == count($this->vats)) {
-            throw new SdkException('More then one vat required');
-        }
-
         $result = [
             'company' => $this->company->toArray(),
             'correction_info' => $this->correctionInfo->toArray(),
@@ -498,12 +494,15 @@ class CorrectionV5 implements RequestPart
             'payments' => array_map(function (Payment $payment) {
                 return $payment->toArray();
             }, $this->payments),
-            'vats' => array_map(function (Vat $vat) {
-                return $vat->toArray();
-            }, $this->vats),
             'internet' => $this->internet,
             'total' => round($this->total, 2),
         ];
+
+        if (count($this->vats) > 0) {
+            $result['vats'] = array_map(function (Vat $vat) {
+                return $vat->toArray();
+            }, $this->vats);
+        }
 
         if (!is_null($this->client)) {
             $result['client'] = $this->client->toArray();
