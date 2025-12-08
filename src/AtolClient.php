@@ -148,7 +148,7 @@ class AtolClient
         }
 
         $token = $response['token'];
-        $this->cache->set($CACHE_KEY, $token, 3600 * 24);
+        $this->cache->set($CACHE_KEY, $token, 3600 * 23 + 3540); // 23 hours + 59 minutes
 
         return $token;
     }
